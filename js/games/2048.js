@@ -236,7 +236,5 @@ export class Game2048 extends Game {
                 }
             }
         }
-
-        this.postDraw();
     }
 }

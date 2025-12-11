@@ -1,4 +1,4 @@
-import { Game, audio, ParticleSystem } from '../engine.js';
+import { Game, audio } from '../engine.js';
 
 export class SnakeGame extends Game {
     constructor(canvasId, onGameOver, onScoreUpdate) {
@@ -23,7 +23,6 @@ export class SnakeGame extends Game {
 
         // Effects
         this.foodPulse = 0;
-        this.particles = new ParticleSystem();
     }
 
     init() {
@@ -94,8 +93,6 @@ export class SnakeGame extends Game {
             this.moveTimer = 0;
             this.step();
         }
-
-        this.particles.update(dt);
     }
 
     step() {
@@ -129,7 +126,7 @@ export class SnakeGame extends Game {
             this.score += 10;
             audio.playSound('eat');
             this.shake(5, 0.2);
-            this.particles.emit(
+            this.createExplosion(
                 newHead.x * this.gridSize + this.gridSize / 2,
                 newHead.y * this.gridSize + this.gridSize / 2,
                 this.colorFood,
@@ -153,9 +150,6 @@ export class SnakeGame extends Game {
 
     draw(alpha) {
         super.draw(alpha);
-
-        this.particles.draw(this.ctx);
-
 
         // Draw Grid (subtle)
         this.ctx.strokeStyle = 'rgba(0, 243, 255, 0.05)';

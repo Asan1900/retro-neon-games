@@ -7,6 +7,8 @@ import { AsteroidsGame } from './games/asteroids.js';
 import { FroggerGame } from './games/frogger.js';
 import { Game2048 } from './games/2048.js';
 import { SudokuGame } from './games/sudoku.js';
+import { BreakoutGame } from './games/breakout.js';
+import { PongGame } from './games/pong.js';
 
 // Setup Mock classes until files exist to prevent runtime crash during dev
 // (Wait, we can't import files that don't exist. Let's comment them out and load dynamically or use a map later)
@@ -64,6 +66,12 @@ function startGame(gameName) {
         case 'sudoku':
             currentGame = new SudokuGame(canvasId, onGameOver, onScoreUpdate);
             break;
+        case 'breakout':
+            currentGame = new BreakoutGame(canvasId, onGameOver, onScoreUpdate);
+            break;
+        case 'pong':
+            currentGame = new PongGame(canvasId, onGameOver, onScoreUpdate);
+            break;
         default:
             console.error('Unknown game:', gameName);
             return;
@@ -82,54 +90,32 @@ function startGame(gameName) {
     window.addEventListener('keydown', handleGlobalKeys);
 }
 
-function onGameOver(score) {
-    // Save Score logic
-    let gameId = '';
-    if (currentGame instanceof SnakeGame) gameId = 'snake';
-    else if (currentGame instanceof TetrisGame) gameId = 'tetris';
-    else if (currentGame instanceof SpaceInvadersGame) gameId = 'space-invaders';
-
-    if (gameId) {
-        Persistence.saveScore(gameId, score);
-    }
-
-    document.getElementById('final-score').innerText = score;
-    showScreen('gameOver');
-    window.removeEventListener('keydown', handleGlobalKeys);
-}
-
-function onScoreUpdate(score) {
-    updateScore(score);
-}
-
-function updateScore(score) {
-    document.getElementById('score-value').innerText = score;
-}
-
-function handleGlobalKeys(e) {
-    if (e.code === 'Escape' || e.code === 'KeyP') {
-        if (currentGame && currentGame.isRunning && !currentGame.isPaused) {
-            currentGame.pause();
-            showScreen('pause');
-        } else if (currentGame && currentGame.isPaused) {
-            currentGame.resume();
-            showScreen('hud');
-        }
-    }
-}
+// Global error handler
+window.addEventListener('error', (event) => {
+    alert('Runtime Error: ' + event.message + '\nLine: ' + event.lineno);
+});
 
 // UI Event Listeners
 document.querySelectorAll('.menu-btn[data-game]').forEach(btn => {
     btn.addEventListener('click', () => {
-        const game = btn.dataset.game;
-        startGame(game);
+        try {
+            const game = btn.dataset.game;
+            startGame(game);
+        } catch (e) {
+            console.error(e);
+            alert(`Failed to start game: ${e.message}`);
+        }
     });
 });
 
 document.getElementById('resume-btn').addEventListener('click', () => {
     if (currentGame) {
-        currentGame.resume();
-        showScreen('hud');
+        try {
+            currentGame.resume();
+            showScreen('hud');
+        } catch (e) {
+            alert('Error resuming game: ' + e.message);
+        }
     }
 });
 
@@ -141,30 +127,74 @@ document.getElementById('quit-btn').addEventListener('click', () => {
     showScreen('menu');
 });
 
+// Restart current game type
 document.getElementById('restart-btn').addEventListener('click', () => {
-    // Restart current game type
-    // We need to know which game was playing. 
-    // Hack: store it on currentGame or variable?
-    // Let's just recreate the last one.
     if (currentGame) {
-        const name = currentGame.constructor.name; // This might be minified? No, vanilla JS
-        // Better:
-        let gameId = '';
-        if (currentGame instanceof SnakeGame) gameId = 'snake';
-        else if (currentGame instanceof TetrisGame) gameId = 'tetris';
-        else if (currentGame instanceof SpaceInvadersGame) gameId = 'space-invaders';
-        else if (currentGame instanceof AsteroidsGame) gameId = 'asteroids';
-        else if (currentGame instanceof FroggerGame) gameId = 'frogger';
-        else if (currentGame instanceof Game2048) gameId = '2048';
-        else if (currentGame instanceof SudokuGame) gameId = 'sudoku';
+        try {
+            let gameId = '';
+            // Logic to identify game
+            if (currentGame instanceof SnakeGame) gameId = 'snake';
+            else if (currentGame instanceof TetrisGame) gameId = 'tetris';
+            else if (currentGame instanceof SpaceInvadersGame) gameId = 'space-invaders';
+            else if (currentGame instanceof AsteroidsGame) gameId = 'asteroids';
+            else if (currentGame instanceof FroggerGame) gameId = 'frogger';
+            else if (currentGame instanceof Game2048) gameId = '2048';
+            else if (currentGame instanceof SudokuGame) gameId = 'sudoku';
+            else if (currentGame instanceof BreakoutGame) gameId = 'breakout';
+            else if (currentGame instanceof PongGame) gameId = 'pong';
 
-        startGame(gameId);
+            if (currentGame.constructor.name === 'BreakoutGame' && !gameId) gameId = 'breakout'; // Fallback
+            if (currentGame.constructor.name === 'PongGame' && !gameId) gameId = 'pong'; // Fallback
+
+            console.log('Restarting game:', gameId);
+            if (gameId) startGame(gameId);
+            else throw new Error("Could not identify game to restart");
+        } catch (e) {
+            alert('Error restarting game: ' + e.message);
+        }
     }
 });
+
+function onGameOver(score) {
+    // Save Score logic
+    let gameId = '';
+    if (currentGame instanceof SnakeGame) gameId = 'snake';
+    else if (currentGame instanceof TetrisGame) gameId = 'tetris';
+    else if (currentGame instanceof SpaceInvadersGame) gameId = 'space-invaders';
+    else if (currentGame instanceof AsteroidsGame) gameId = 'asteroids';
+    else if (currentGame instanceof FroggerGame) gameId = 'frogger';
+    else if (currentGame instanceof Game2048) gameId = '2048';
+    else if (currentGame instanceof SudokuGame) gameId = 'sudoku';
+    else if (currentGame instanceof BreakoutGame) gameId = 'breakout';
+    else if (currentGame instanceof PongGame) gameId = 'pong';
+
+    if (gameId) {
+        Persistence.saveScore(gameId, score);
+    }
+
+    document.getElementById('final-score').innerText = score;
+    showScreen('gameOver');
+    window.removeEventListener('keydown', handleGlobalKeys);
+}
 
 document.getElementById('menu-btn').addEventListener('click', () => {
     showScreen('menu');
 });
+
+function onScoreUpdate(score) {
+    updateScore(score);
+}
+
+function updateScore(score) {
+    document.getElementById('score-value').innerText = score;
+}
+
+function handleGlobalKeys(e) {
+    if (e.key === 'Escape' && currentGame && currentGame.running) {
+        currentGame.pause();
+        showScreen('pause');
+    }
+}
 
 // Initial
 showScreen('menu');

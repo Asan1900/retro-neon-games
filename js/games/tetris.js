@@ -1,4 +1,4 @@
-import { Game, audio, ParticleSystem } from '../engine.js';
+import { Game, audio } from '../engine.js';
 
 const TETROMINOES = {
     I: { shape: [[1, 1, 1, 1]], color: '#00f3ff' }, // Cyan
@@ -28,7 +28,7 @@ export class TetrisGame extends Game {
         this.dropCounter = 0;
         this.dropInterval = 1; // seconds
 
-        this.particles = new ParticleSystem();
+        // this.particles handled by base class
         this.holdPiece = null;
         this.canHold = true;
     }
@@ -127,10 +127,10 @@ export class TetrisGame extends Game {
 
             // Particles
             for (let i = 0; i < rowCount * 5; i++) {
-                this.particles.emit(
+                this.createExplosion(
                     this.boardOffset.x + Math.random() * this.cols * this.blockSize,
                     this.boardOffset.y + Math.random() * this.rows * this.blockSize, // Simplified y
-                    '#ffffff', 2
+                    '#ffffff', 5, 100, 1.0, 3
                 );
             }
 
@@ -178,8 +178,6 @@ export class TetrisGame extends Game {
         if ((this.input.isPressed('KeyC') || this.input.isPressed('ShiftLeft')) && this.canHold) {
             this.hold();
         }
-
-        this.particles.update(dt);
     }
 
     hold() {
@@ -260,7 +258,6 @@ export class TetrisGame extends Game {
                 });
             });
 
-            // Draw Active Piece
             this.currPiece.matrix.forEach((row, y) => {
                 row.forEach((value, x) => {
                     if (value !== 0) {
@@ -269,8 +266,6 @@ export class TetrisGame extends Game {
                 });
             });
         }
-
-        this.particles.draw(this.ctx);
 
         // Draw Hold Piece
         if (this.holdPiece) {
@@ -289,8 +284,6 @@ export class TetrisGame extends Game {
                 });
             });
         }
-
-        this.postDraw();
     }
 
     drawBlock(x, y, color, isGhost = false) {

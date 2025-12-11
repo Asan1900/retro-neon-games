@@ -59,27 +59,24 @@ export class Game {
         this.ctx = this.canvas.getContext('2d');
         this.width = this.canvas.width;
         this.height = this.canvas.height;
+        this.running = false;
+        this.paused = false;
+        this.gridSize = 20;
 
         // Handle High DPI
         this.resize();
         window.addEventListener('resize', () => this.resize());
 
         this.lastTime = 0;
-        this.accumulator = 0;
         this.deltaTime = 1 / 60; // Fixed timestep
 
-        this.isRunning = false;
-        this.isPaused = false;
-
         this.input = new InputManager();
-
-        // Juice
-        this.shakeTime = 0;
-        this.shakeMagnitude = 0;
-
+        this.particles = [];
+        this.screenshake = 0;
+        this.pauseLock = false; // To prevent rapid pause toggling
 
         // Bind query methods
-        this.loop = this.loop.bind(this);
+        this.gameLoop = this.gameLoop.bind(this);
     }
 
     resize() {
@@ -92,75 +89,134 @@ export class Game {
     }
 
     start() {
-        if (this.isRunning) return;
-        this.isRunning = true;
-        this.isPaused = false;
+        if (this.running) return;
+        this.running = true;
+        this.paused = false;
         this.lastTime = performance.now();
-        requestAnimationFrame(this.loop);
+        requestAnimationFrame(this.gameLoop);
         this.init(); // Child implementation
     }
 
     stop() {
-        this.isRunning = false;
+        this.running = false;
     }
 
     pause() {
-        this.isPaused = true;
+        this.paused = true;
     }
 
     resume() {
-        this.isPaused = false;
+        this.paused = false;
         this.lastTime = performance.now(); // Reset time to avoid jump
-        requestAnimationFrame(this.loop);
+        requestAnimationFrame(this.gameLoop);
     }
 
-    loop(currentTime) {
-        if (!this.isRunning || this.isPaused) return;
+    gameLoop(currentTime) {
+        if (!this.running) return;
 
-        const frameTime = (currentTime - this.lastTime) / 1000;
+        const deltaTime = (currentTime - this.lastTime) / 1000;
         this.lastTime = currentTime;
 
-        // Cap frame time to avoid spiral of death
-        const safeFrameTime = Math.min(frameTime, 0.25);
-
-        this.accumulator += safeFrameTime;
-
-        while (this.accumulator >= this.deltaTime) {
-            this.update(this.deltaTime);
-            if (this.shakeTime > 0) this.shakeTime -= this.deltaTime;
-            this.input.update(); // Clear single-frame inputs
-            this.accumulator -= this.deltaTime;
+        // Check for pause toggle
+        if (this.input.isPressed('KeyP') || this.input.isPressed('Escape')) {
+            // Check if we should ignore this press to prevent flickering
+            if (!this.pauseLock) {
+                this.paused = !this.paused;
+                audio.playSound('nav');
+                // visual pause handled by main.js observing this state or via HUD
+                // But we can also draw a 'PAUSED' overlay here if we want
+                // For now, main.js handles the overlay switching, we just freeze updates
+            }
+            this.pauseLock = true;
+        } else {
+            this.pauseLock = false; // Reset lock when key released
         }
 
-        this.draw(this.accumulator / this.deltaTime); // Alpha for interpolation if needed
+        if (!this.paused) {
+            this.update(deltaTime);
+            this.updateParticles(deltaTime);
+        }
 
-        requestAnimationFrame(this.loop);
+        this.draw(1.0);
+
+        if (this.paused) {
+            // Draw simple pause overlay on canvas for immediate feedback
+            this.ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            this.ctx.fillRect(0, 0, this.width, this.height);
+            this.drawText('PAUSED', this.width / 2, this.height / 2, 40, '#00f3ff', 'center');
+        }
+
+        // Always update input to detect resume
+        this.input.update();
+
+        requestAnimationFrame(this.gameLoop);
     }
 
     // Methods to override
     init() { }
     update(dt) { }
-    draw(alpha) {
-        this.ctx.clearRect(0, 0, this.width, this.height);
 
-        // Apply Shake
-        if (this.shakeTime > 0) {
-            const dx = (Math.random() - 0.5) * 2 * this.shakeMagnitude;
-            const dy = (Math.random() - 0.5) * 2 * this.shakeMagnitude;
-            this.ctx.save();
-            this.ctx.translate(dx, dy);
+    createExplosion(x, y, color, count = 10, speed = 200, life = 1.0, size = 3) {
+        for (let i = 0; i < count; i++) {
+            const angle = Math.random() * Math.PI * 2;
+            const v = Math.random() * speed;
+            this.particles.push({
+                x: x,
+                y: y,
+                vx: Math.cos(angle) * v,
+                vy: Math.sin(angle) * v,
+                life: life + Math.random() * 0.2,
+                maxLife: life + 0.2, // For alpha fade if needed
+                color: color,
+                size: Math.random() * size + 1
+            });
         }
     }
 
-    postDraw() {
-        if (this.shakeTime > 0) {
+    updateParticles(dt) {
+        for (let i = this.particles.length - 1; i >= 0; i--) {
+            let p = this.particles[i];
+            p.x += p.vx * dt;
+            p.y += p.vy * dt;
+            p.life -= dt * 2; // Fade faster
+
+            if (p.life <= 0) {
+                this.particles.splice(i, 1);
+            }
+        }
+    }
+
+    draw(alpha) {
+        // Clear
+        this.ctx.fillStyle = '#000';
+        this.ctx.fillRect(0, 0, this.width, this.height);
+
+        // Screenshake
+        let dx = 0, dy = 0;
+        if (this.screenshake > 0) {
+            dx = (Math.random() - 0.5) * this.screenshake;
+            dy = (Math.random() - 0.5) * this.screenshake;
+            this.ctx.save();
+            this.ctx.translate(dx, dy);
+            this.screenshake *= 0.9;
+            if (this.screenshake < 0.5) this.screenshake = 0;
+        }
+
+        // Draw particles
+        this.particles.forEach(p => {
+            this.ctx.fillStyle = p.color;
+            this.ctx.globalAlpha = p.life;
+            this.ctx.fillRect(p.x, p.y, p.size, p.size);
+            this.ctx.globalAlpha = 1.0;
+        });
+
+        if (this.screenshake > 0) {
             this.ctx.restore();
         }
     }
 
-    shake(magnitude, duration) {
-        this.shakeMagnitude = magnitude;
-        this.shakeTime = duration;
+    shake(magnitude) {
+        this.screenshake = magnitude;
     }
 
 

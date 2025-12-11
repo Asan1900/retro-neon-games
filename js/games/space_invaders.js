@@ -9,8 +9,7 @@ export class SpaceInvadersGame extends Game {
         this.player = { x: 0, y: 0, width: 30, height: 20, speed: 300, cooldown: 0 };
         this.bullets = [];
         this.enemyBullets = [];
-        this.enemies = [];
-        this.particles = [];
+        this.enemies = [];        // this.particles (base class)
 
         this.waveDir = 1;
         this.waveTimer = 0;
@@ -54,7 +53,7 @@ export class SpaceInvadersGame extends Game {
         this.waveSpeed = Math.max(0.2, 1.0 - this.level * 0.1);
         this.bullets = [];
         this.enemyBullets = [];
-        this.particles = [];
+        // Particles persist across waves
     }
 
     update(dt) {
@@ -143,7 +142,7 @@ export class SpaceInvadersGame extends Game {
                     b.valid = false;
                     this.score += 10;
                     audio.playSound('explosion');
-                    this.spawnParticles(e.x + e.width / 2, e.y + e.height / 2, '#ff00de');
+                    this.createExplosion(e.x + e.width / 2, e.y + e.height / 2, '#ff00de', 10, 200, 0.5);
                     break;
                 }
             }
@@ -159,25 +158,7 @@ export class SpaceInvadersGame extends Game {
             }
         }
 
-        // Particles
-        this.particles.forEach(p => {
-            p.x += p.vx * dt;
-            p.y += p.vy * dt;
-            p.life -= dt;
-        });
-        this.particles = this.particles.filter(p => p.life > 0);
-    }
-
-    spawnParticles(x, y, color) {
-        for (let i = 0; i < 10; i++) {
-            this.particles.push({
-                x, y,
-                vx: (Math.random() - 0.5) * 200,
-                vy: (Math.random() - 0.5) * 200,
-                life: 0.5,
-                color: color
-            });
-        }
+        // Particles updated by base class
     }
 
     draw(alpha) {
@@ -213,13 +194,5 @@ export class SpaceInvadersGame extends Game {
         });
 
         this.ctx.shadowBlur = 0;
-
-        // Particles
-        this.particles.forEach(p => {
-            this.ctx.fillStyle = p.color;
-            this.ctx.globalAlpha = p.life / 0.5;
-            this.ctx.fillRect(p.x, p.y, 3, 3);
-        });
-        this.ctx.globalAlpha = 1.0;
     }
 }

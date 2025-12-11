@@ -1,4 +1,4 @@
-import { Game, audio, ParticleSystem } from '../engine.js';
+import { Game, audio } from '../engine.js';
 
 export class FroggerGame extends Game {
     constructor(canvasId, onGameOver, onScoreUpdate) {
@@ -12,7 +12,7 @@ export class FroggerGame extends Game {
 
         this.frog = { x: 0, y: 0 };
         this.lanes = [];
-        this.particles = new ParticleSystem();
+        // this.particles handled by base class
         this.score = 0;
         this.lives = 3;
         this.level = 1;
@@ -139,24 +139,22 @@ export class FroggerGame extends Game {
         } else if (currentLane.type === 'goal') {
             // Reached goal
             const goalX = Math.floor(this.frog.x);
-            if (!this.goalsFilled.includes(goalX)) {
-                this.goalsFilled.push(goalX);
-                this.score += 100;
-                audio.playSound('eat');
-                this.shake(5, 0.2);
-                this.particles.emit(
-                    this.frog.x * this.gridSize + this.gridSize / 2,
-                    this.frog.y * this.gridSize + this.gridSize / 2,
-                    '#0aff00', 20
-                );
-                this.onScoreUpdate(this.score);
+            this.goalsFilled.push(goalX);
+            this.score += 100;
+            audio.playSound('eat');
+            this.shake(5, 0.2);
+            this.createExplosion(
+                this.frog.x * this.gridSize + this.gridSize / 2,
+                this.frog.y * this.gridSize + this.gridSize / 2,
+                '#0aff00', 20
+            );
+            this.onScoreUpdate(this.score);
 
-                // Check if all goals filled
-                if (this.goalsFilled.length >= 5) {
-                    this.level++;
-                    this.goalsFilled = [];
-                    this.setupLanes();
-                }
+            // Check if all goals filled
+            if (this.goalsFilled.length >= 5) {
+                this.level++;
+                this.goalsFilled = [];
+                this.setupLanes();
             }
 
             // Reset position
@@ -168,8 +166,6 @@ export class FroggerGame extends Game {
         if (this.frog.x < 0 || this.frog.x >= this.cols) {
             this.die();
         }
-
-        this.particles.update(dt);
     }
 
     moveFrog(dx, dy) {
@@ -188,10 +184,10 @@ export class FroggerGame extends Game {
         this.lives--;
         audio.playSound('die');
         this.shake(15, 0.4);
-        this.particles.emit(
+        this.createExplosion(
             this.frog.x * this.gridSize + this.gridSize / 2,
             this.frog.y * this.gridSize + this.gridSize / 2,
-            '#0aff00', 20, 150, 0.6
+            '#0aff00', 20, 150
         );
 
         if (this.lives <= 0) {
@@ -259,14 +255,10 @@ export class FroggerGame extends Game {
 
         this.ctx.shadowBlur = 0;
 
-        this.particles.draw(this.ctx);
-
         // Draw lives
         for (let i = 0; i < this.lives; i++) {
             this.ctx.fillStyle = '#0aff00';
             this.ctx.fillRect(10 + i * 25, this.height - 25, 20, 20);
         }
-
-        this.postDraw();
     }
 }

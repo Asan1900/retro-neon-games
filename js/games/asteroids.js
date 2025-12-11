@@ -1,4 +1,4 @@
-import { Game, audio, ParticleSystem } from '../engine.js';
+import { Game, audio } from '../engine.js';
 
 export class AsteroidsGame extends Game {
     constructor(canvasId, onGameOver, onScoreUpdate) {
@@ -16,7 +16,7 @@ export class AsteroidsGame extends Game {
 
         this.bullets = [];
         this.asteroids = [];
-        this.particles = new ParticleSystem();
+        // this.particles handled by base class
 
         this.score = 0;
         this.lives = 3;
@@ -97,10 +97,10 @@ export class AsteroidsGame extends Game {
 
             // Particle trail
             if (Math.random() < 0.3) {
-                this.particles.emit(
+                this.createExplosion(
                     this.ship.x - Math.cos(this.ship.angle) * 10,
                     this.ship.y - Math.sin(this.ship.angle) * 10,
-                    '#ffaa00', 3, 50, 0.3
+                    '#ffaa00', 3, 50, 0.3, 2
                 );
             }
         }
@@ -162,7 +162,7 @@ export class AsteroidsGame extends Game {
                     this.splitAsteroid(a);
                     audio.playSound('explosion');
                     this.shake(3, 0.1);
-                    this.particles.emit(a.x, a.y, '#00f3ff', 15, 150, 0.5);
+                    this.createExplosion(a.x, a.y, '#00f3ff', 15, 150, 0.5, 3);
                     this.score += (4 - a.size) * 20;
                     this.onScoreUpdate(this.score);
                     break;
@@ -182,7 +182,7 @@ export class AsteroidsGame extends Game {
                     this.lives--;
                     audio.playSound('die');
                     this.shake(15, 0.5);
-                    this.particles.emit(this.ship.x, this.ship.y, '#0aff00', 20, 200, 0.8);
+                    this.createExplosion(this.ship.x, this.ship.y, '#0aff00', 20, 200, 0.8, 5);
 
                     if (this.lives <= 0) {
                         this.onGameOver(this.score);
@@ -204,8 +204,6 @@ export class AsteroidsGame extends Game {
             this.level++;
             this.spawnAsteroids(4 + this.level);
         }
-
-        this.particles.update(dt);
     }
 
     splitAsteroid(asteroid) {
@@ -227,8 +225,6 @@ export class AsteroidsGame extends Game {
 
     draw(alpha) {
         super.draw(alpha);
-
-        this.particles.draw(this.ctx);
 
         // Draw ship
         if (this.invulnerable <= 0 || Math.floor(this.invulnerable * 10) % 2 === 0) {
@@ -312,7 +308,5 @@ export class AsteroidsGame extends Game {
             this.ctx.stroke();
             this.ctx.restore();
         }
-
-        this.postDraw();
     }
 }
