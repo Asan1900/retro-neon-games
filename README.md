@@ -1,8 +1,8 @@
 # 🎮 Neon Arcade - Коллекция Ретро Игр
 
-Коллекция из 7 классических аркадных игр с неоновой эстетикой в стиле киберпанк. Все игры написаны на чистом JavaScript без внешних зависимостей.
+Коллекция из 9 классических аркадных игр с неоновой эстетикой в стиле киберпанк. Все игры написаны на чистом JavaScript без внешних зависимостей.
 
-![Neon Arcade](https://img.shields.io/badge/Games-7-brightgreen) ![Tech](https://img.shields.io/badge/Tech-Vanilla_JS-yellow) ![Style](https://img.shields.io/badge/Style-Neon_Retro-ff00de)
+![Neon Arcade](https://img.shields.io/badge/Games-9-brightgreen) ![Tech](https://img.shields.io/badge/Tech-Vanilla_JS-yellow) ![Style](https://img.shields.io/badge/Style-Neon_Retro-ff00de)
 
 ## 🕹️ Игры
 
