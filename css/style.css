@@ -1,0 +1,291 @@
+:root {
+    --bg-color: #050510;
+    --neon-blue: #00f3ff;
+    --neon-pink: #ff00de;
+    --neon-green: #0aff00;
+    --neon-yellow: #ffee00;
+    --text-color: #ffffff;
+    --font-retro: 'Press Start 2P', cursive;
+    --font-ui: 'Audiowide', cursive;
+}
+
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+    user-select: none;
+}
+
+body {
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-ui);
+    overflow: hidden;
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+
+    /* Scrolling Background */
+    background:
+        radial-gradient(circle at 50% 50%, rgba(20, 20, 40, 1) 0%, rgba(5, 5, 10, 1) 80%),
+        linear-gradient(rgba(0, 243, 255, 0.05) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(0, 243, 255, 0.05) 1px, transparent 1px);
+    background-size: 100% 100%, 50px 50px, 50px 50px;
+    background-position: center, 0 0, 0 0;
+    animation: bgScroll 60s linear infinite;
+}
+
+@keyframes bgScroll {
+    from {
+        background-position: center, 0 0, 0 0;
+    }
+
+    to {
+        background-position: center, 0 1000px, 1000px 0;
+    }
+}
+
+/* --- CRT Effects --- */
+.crt-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    background: radial-gradient(circle, rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.45) 90%),
+        linear-gradient(rgba(18, 16, 16, 0) 50%, rgba(0, 0, 0, 0.1) 50%);
+    background-size: 100% 2px, 100% 2px;
+    pointer-events: none;
+    z-index: 1000;
+}
+
+.scanline {
+    width: 100%;
+    height: 10px;
+    background: rgba(255, 255, 255, 0.05);
+    position: absolute;
+    top: 0;
+    left: 0;
+    animation: scanline 6s linear infinite;
+    pointer-events: none;
+    z-index: 1001;
+}
+
+@keyframes scanline {
+    0% {
+        top: -10%;
+    }
+
+    100% {
+        top: 110%;
+    }
+}
+
+/* --- Game Container --- */
+#game-container {
+    position: relative;
+    width: 800px;
+    height: 600px;
+    max-width: 100%;
+    max-height: 100%;
+    background: #000;
+    box-shadow: 0 0 20px rgba(0, 243, 255, 0.1), inset 0 0 50px rgba(0, 0, 0, 0.5);
+    border: 2px solid #333;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+    image-rendering: pixelated;
+    /* or crisp-edges depending on browser */
+}
+
+/* --- UI Layer --- */
+#ui-layer {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    pointer-events: none;
+    /* Let clicks pass through to canvas during game */
+}
+
+.screen {
+    position: absolute;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    width: 100%;
+    height: 100%;
+    background: rgba(5, 5, 16, 0.85);
+    backdrop-filter: blur(5px);
+    transition: opacity 0.3s ease;
+    pointer-events: auto;
+}
+
+.screen.hidden {
+    opacity: 0;
+    pointer-events: none;
+    visibility: hidden;
+    /* prevents focusing hidden buttons */
+}
+
+.screen.active {
+    opacity: 1;
+    pointer-events: auto;
+    visibility: visible;
+}
+
+/* --- Menu Elements --- */
+.logo {
+    font-family: var(--font-retro);
+    font-size: 2.5rem;
+    color: var(--neon-pink);
+    text-shadow:
+        2px 2px var(--neon-blue),
+        0 0 10px var(--neon-pink),
+        0 0 20px var(--neon-pink),
+        0 0 30px var(--neon-blue);
+    margin-bottom: 1rem;
+    animation: glow 2s ease-in-out infinite alternate;
+    letter-spacing: 4px;
+}
+
+.subtitle {
+    font-family: var(--font-ui);
+    font-size: 0.9rem;
+    color: var(--neon-blue);
+    margin-bottom: 3rem;
+    opacity: 0.8;
+    letter-spacing: 2px;
+}
+
+@keyframes glow {
+    from {
+        text-shadow:
+            2px 2px var(--neon-blue),
+            0 0 10px var(--neon-pink),
+            0 0 20px var(--neon-pink);
+    }
+
+    to {
+        text-shadow:
+            2px 2px var(--neon-blue),
+            0 0 20px var(--neon-pink),
+            0 0 40px var(--neon-pink),
+            0 0 60px var(--neon-blue);
+    }
+}
+
+.menu-options {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.5rem;
+    max-width: 900px;
+    padding: 0 2rem;
+}
+
+.menu-btn {
+    background: linear-gradient(135deg, rgba(0, 243, 255, 0.1), rgba(255, 0, 222, 0.1));
+    border: 2px solid var(--neon-blue);
+    color: var(--neon-blue);
+    padding: 1.5rem 1rem;
+    font-family: var(--font-ui);
+    font-size: 1rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+    border-radius: 8px;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+}
+
+.menu-btn::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: -100%;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(0, 243, 255, 0.3), transparent);
+    transition: left 0.5s;
+}
+
+.menu-btn:hover::before {
+    left: 100%;
+}
+
+.menu-btn .game-title {
+    font-size: 1.1rem;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+.menu-btn .game-desc {
+    font-size: 0.7rem;
+    opacity: 0.7;
+    font-family: 'Audiowide', sans-serif;
+    text-transform: none;
+}
+
+.menu-btn:hover {
+    background: linear-gradient(135deg, var(--neon-blue), var(--neon-pink));
+    color: #000;
+    box-shadow: 0 0 30px var(--neon-blue), 0 0 50px var(--neon-pink);
+    text-shadow: none;
+    transform: translateY(-5px) scale(1.05);
+    border-color: var(--neon-pink);
+}
+
+.menu-btn:active {
+    transform: scale(0.95);
+}
+
+/* --- HUD --- */
+#hud {
+    justify-content: flex-start;
+    padding-top: 10px;
+    height: auto;
+    background: transparent;
+    backdrop-filter: none;
+    pointer-events: none;
+}
+
+.score-board {
+    display: flex;
+    gap: 40px;
+    font-family: var(--font-retro);
+    font-size: 1.2rem;
+    text-shadow: 1px 1px #000;
+    width: 100%;
+    padding: 0 20px;
+    justify-content: space-between;
+}
+
+#score-value,
+#high-score-value {
+    color: var(--neon-yellow);
+}
+
+#pause-screen h2,
+#game-over-screen h2 {
+    font-family: var(--font-retro);
+    font-size: 2.5rem;
+    color: var(--neon-green);
+    margin-bottom: 2rem;
+}

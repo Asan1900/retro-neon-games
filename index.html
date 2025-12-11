@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Retro Arcade Collection</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Audiowide&display=swap" rel="stylesheet">
+</head>
+
+<body>
+    <div class="crt-overlay"></div>
+    <div class="scanline"></div>
+
+    <div id="game-container">
+        <canvas id="game-canvas"></canvas>
+
+        <div id="ui-layer">
+            <div id="main-menu" class="screen active">
+                <h1 class="logo">NEON ARCADE</h1>
+                <p class="subtitle">7 CLASSIC GAMES • RETRO VIBES</p>
+                <div class="menu-options">
+
+                    <button class="menu-btn" data-game="snake">
+                        <div class="game-title">🐍 SNAKE</div>
+                        <div class="game-desc">Classic arcade action</div>
+                    </button>
+                    <button class="menu-btn" data-game="tetris">
+                        <div class="game-title">🎮 TETRIS</div>
+                        <div class="game-desc">Puzzle perfection</div>
+                    </button>
+                    <button class="menu-btn" data-game="space-invaders">
+                        <div class="game-title">👾 INVADERS</div>
+                        <div class="game-desc">Defend the galaxy</div>
+                    </button>
+                    <button class="menu-btn" data-game="asteroids">
+                        <div class="game-title">☄️ ASTEROIDS</div>
+                        <div class="game-desc">Vector space shooter</div>
+                    </button>
+                    <button class="menu-btn" data-game="frogger">
+                        <div class="game-title">🐸 FROGGER</div>
+                        <div class="game-desc">Cross the road</div>
+                    </button>
+                    <button class="menu-btn" data-game="2048">
+                        <div class="game-title">🔢 2048</div>
+                        <div class="game-desc">Merge to win</div>
+                    </button>
+                    <button class="menu-btn" data-game="sudoku">
+                        <div class="game-title">🧩 SUDOKU</div>
+                        <div class="game-desc">Number puzzle</div>
+                    </button>
+                </div>
+            </div>
+
+            <div id="hud" class="screen hidden">
+                <div class="score-board">
+                    <span>SCORE: <span id="score-value">0</span></span>
+                    <span>HIGH: <span id="high-score-value">0</span></span>
+                </div>
+                <!-- Extra HUD info can go here -->
+            </div>
+
+            <div id="pause-screen" class="screen hidden">
+                <h2>PAUSED</h2>
+                <div class="menu-options">
+                    <button class="menu-btn" id="resume-btn">RESUME</button>
+                    <button class="menu-btn" id="quit-btn">QUIT</button>
+                </div>
+            </div>
+
+            <div id="game-over-screen" class="screen hidden">
+                <h2>GAME OVER</h2>
+                <p>FINAL SCORE: <span id="final-score">0</span></p>
+                <div class="menu-options">
+                    <button class="menu-btn" id="restart-btn">RETRY</button>
+                    <button class="menu-btn" id="menu-btn">MENU</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Scripts -->
+    <script type="module" src="js/main.js"></script>
+</body>
+
+</html>
